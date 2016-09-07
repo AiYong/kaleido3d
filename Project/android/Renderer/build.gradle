@@ -1,0 +1,82 @@
+apply plugin: 'com.android.model.library'
+
+println "vkDir:"+gradle.vulkanDir
+
+model {
+
+    android {
+        compileSdkVersion = "android-23"
+        buildToolsVersion = "23.0.2"
+        defaultConfig.with {
+            minSdkVersion.apiLevel = 22
+            targetSdkVersion.apiLevel = 24
+            versionCode = 1
+            versionName = "0.0.1"
+        }
+    }
+
+    android.ndk {
+        moduleName = "renderer"
+        cppFlags.add("-std=c++14")
+        toolchain = "clang"
+        stl = "gnustl_static"
+        ldLibs.addAll(["log", "android"])
+        cppFlags.add("-I${file("../../../Source")}".toString())
+        cppFlags.add("-I${file("../../../Source/Renderer")}".toString())
+        cppFlags.add("-I${file("../../../Include")}".toString())
+        cppFlags.add("-I${file(gradle.vulkanDir)}".toString())
+        cppFlags.add("-I${file(gradle.v8Dir+"/include")}".toString())
+        cppFlags.add("-D VK_USE_PLATFORM_ANDROID_KHR")
+        cppFlags.add("-D VK_NO_PROTOTYPES")
+        cppFlags.add("-DK3DPLATFORM_OS_ANDROID=1")
+        cppFlags.add("-fexceptions")
+    }
+
+    android.abis {
+        create("armeabi-v7a") {
+            cppFlags.addAll(["-mhard-float", "-D_NDK_MATH_NO_SOFTFP=1", "-mfloat-abi=hard"])
+            ldLibs.add("m_hard")
+            ldFlags.add("-Wl,--no-warn-mismatch")
+            ldFlags.add("-L${file(gradle.v8Dir+"/android/armeabi-v7a")}".toString())
+            ldLibs.add("v8rt")
+        }
+    }
+
+    android.abis {
+        create("arm64-v8a") {
+            ldFlags.add("-L${file(gradle.v8Dir+"/android/arm64-v8a")}".toString())
+            ldLibs.add("v8rt")
+            ldFlags.add("-Wl,--no-warn-mismatch")
+        }
+    }
+
+    android.sources {
+        main {
+            jni {
+                dependencies {
+                    project ":Core" linkage "shared"
+                    project ":RHI_Vulkan" linkage "shared"
+                }
+                source {
+                    srcDir '../../../Source/Renderer'
+                }
+            }
+        }
+    }
+
+    android.buildTypes {
+        release {
+            ndk.with {
+                debuggable = true
+            }
+            minifyEnabled = false
+            proguardFiles.add(file('proguard-rules.pro'))
+        }
+    }
+
+    android.productFlavors {
+        create("all") {
+            ndk.abiFilters.add("arm64-v8a")
+        }
+    }
+}

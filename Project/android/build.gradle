@@ -1,0 +1,24 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle-experimental:0.7.0'
+    }
+}
+println rootProject.rootDir
+//File vkDir = file(rootProject.rootDir.toString() + "/../../Source/ThirdParty/vulkan")
+//String[] vkVers = vkDir.list();
+//def vkVer = vkVers[0]
+gradle.ext.set("vulkanDir", rootProject.rootDir.toString() + "/../../Source/ThirdParty/vulkan/1.0.21.0/Include")
+gradle.ext.set("v8Dir", rootProject.rootDir.toString() + "/../../Source/ThirdParty/v8-5.5.1")
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

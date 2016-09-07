@@ -1,0 +1,115 @@
+apply plugin: 'com.android.model.application'
+
+
+model {
+
+    repositories {
+        libs(PrebuiltLibraries) {
+            v8 {
+                headers.srcDir "${gradle.v8Dir}/include"
+                binaries.withType(SharedLibraryBinary) {
+                    sharedLibraryFile = file("${gradle.v8Dir}/android/${targetPlatform.getName()}/libv8rt.so")
+                }
+            }
+        }
+    }
+
+    android {
+        compileSdkVersion = "android-22"
+        buildToolsVersion = "23.0.2"
+
+        defaultConfig.with {
+            applicationId = "com.tsinstudio.triangle"
+            minSdkVersion.apiLevel = 22
+            targetSdkVersion.apiLevel = 24
+            versionCode = 1
+            versionName = "0.0.1"
+        }
+        
+        compileOptions.with {
+            sourceCompatibility=JavaVersion.VERSION_1_7
+            targetCompatibility=JavaVersion.VERSION_1_7
+        }
+
+        task copyTestAssets(type: Copy) {
+            from '../../../Data/Test'
+            include '*.vert'
+            include '*.frag'
+            into 'src/main/assets/Test'
+        }
+
+        task copyV8data(type: Copy) {
+            from "${gradle.v8Dir}/android/arm64-v8a"
+            include '*.bin'
+            into 'src/main/assets/Test'
+        }
+    }
+
+    android.ndk {
+        moduleName = "triangle"
+        cppFlags.add("-std=c++14")
+        toolchain = "clang"
+        stl = "gnustl_static"
+        ldLibs.addAll(["log", "android"])
+        cppFlags.add("-I${file("../../../Include")}".toString())
+        cppFlags.add("-I${file("../../../Source")}".toString())
+        cppFlags.add("-I${file(gradle.vulkanDir)}".toString())
+        cppFlags.add("-I${file(gradle.v8Dir+"/include")}".toString())
+        cppFlags.add("-D VK_USE_PLATFORM_ANDROID_KHR")
+        cppFlags.add("-D __ANDROID__=1")
+        cppFlags.add("-DK3DPLATFORM_OS_ANDROID=1")
+        cppFlags.add("-fexceptions")
+    }
+
+    android.abis {
+        create("armeabi-v7a") {
+            cppFlags.addAll(["-mhard-float", "-D_NDK_MATH_NO_SOFTFP=1", "-mfloat-abi=hard"])
+            ldLibs.add("m_hard")
+            ldFlags.add("-Wl,--no-warn-mismatch")
+        }
+    }
+
+    android.sources {
+        main {
+            jni {
+                dependencies {
+                    project ":Core" linkage "shared"
+                    project ":ShaderCompiler" linkage "shared"
+                    project ":RHI_Vulkan" linkage "shared"
+                    project ":Renderer" linkage "shared"
+                }
+                source {
+                    srcDir '../../../Source/UnitTest/3.Triangle/'
+                }
+            }
+            jniLibs {
+                source {
+                    srcDir "${gradle.v8Dir}/android"
+                }
+            }
+        }
+    }
+
+    android.buildTypes {
+        release {
+            ndk.with {
+                debuggable = true
+            }
+            minifyEnabled = false
+            proguardFiles.add(file('proguard-rules.pro'))
+        }
+    }
+
+    android.productFlavors {
+        create("arm8") {
+            ndk.abiFilters.add("arm64-v8a")
+        }
+    }
+}
+
+
+tasks.whenTaskAdded { task ->
+    if (task.name.startsWith('generate') && task.name.endsWith("Assets")) {
+        task.dependsOn copyTestAssets,copyV8data
+    }
+}
