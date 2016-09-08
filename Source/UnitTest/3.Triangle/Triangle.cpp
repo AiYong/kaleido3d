@@ -54,7 +54,6 @@ private:
 	rhi::IPipelineLayout*				m_pl;
 	std::vector<rhi::ICommandContext*>	m_Cmds;
 	rhi::ISyncFence*					m_pFence;
-	std::vector<rhi::ICommandContext*>	m_PostCmd;
 };
 
 K3D_APP_MAIN(VkTriangleUnitTest);
@@ -245,6 +244,7 @@ void VkTriangleUnitTest::PrepareCommandBuffer()
 		auto pRT = m_Viewport->GetRenderTarget(i);
 		auto gfxCmd = pDevice->NewCommandContext(rhi::ECMD_Graphics);
 		gfxCmd->Begin();
+		gfxCmd->TransitionResourceBarrier(pRT->GetBackBuffer(), rhi::ERS_Unknown, rhi::ERS_RenderTarget);
 		gfxCmd->SetPipelineLayout(m_pl);
 		rhi::Rect rect{ 0,0, (long)m_Viewport->GetWidth(), (long)m_Viewport->GetHeight() };
 		gfxCmd->SetRenderTarget(pRT);
@@ -258,10 +258,6 @@ void VkTriangleUnitTest::PrepareCommandBuffer()
 		gfxCmd->TransitionResourceBarrier(pRT->GetBackBuffer(), rhi::ERS_RenderTarget, rhi::ERS_Present);
 		gfxCmd->End();
 		m_Cmds.push_back(gfxCmd);
-		m_PostCmd.push_back(pDevice->NewCommandContext(rhi::ECMD_Graphics));
-		m_PostCmd[i]->Begin();
-		m_PostCmd[i]->TransitionResourceBarrier(pRT->GetBackBuffer(), rhi::ERS_Unknown, rhi::ERS_RenderTarget);
-		m_PostCmd[i]->End();
 	}
 
 }
@@ -279,7 +275,7 @@ void VkTriangleUnitTest::OnProcess(Message& msg)
 {
 	KLOG(Info, VkTriangleUnitTest, __K3D_FUNC__);
 	m_Viewport->PrepareNextFrame();
-	m_PostCmd[m_Viewport->GetSwapChainIndex()]->Execute(true);
+	//m_PostCmd[m_Viewport->GetSwapChainIndex()]->Execute(true);
 	m_Cmds[m_Viewport->GetSwapChainIndex()]->PresentInViewport(m_Viewport);
 }
 

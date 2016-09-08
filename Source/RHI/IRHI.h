@@ -192,21 +192,6 @@ namespace rhi
 		virtual uint32				GetHeight() const = 0;
 	};
 
-	/*
-	struct IShaderCompiler
-	{
-		enum ELangVersion
-		{
-			HLSL_5_0,
-			HLSL_5_1,
-			GLSL_4_3,
-			METALSL_1_1,
-			LangVersionNum
-		};
-
-		virtual IShaderBytes* CompileFromSource(ELangVersion, EShaderType, const char*) = 0;
-	};
-	*/
 	struct IShaderBytes
 	{
 		virtual uint32		Length() = 0;

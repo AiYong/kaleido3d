@@ -122,15 +122,15 @@ VkResult RHIRoot::CreateInstance(bool enableValidation, std::string name)
 		{
 			enabledExtensions.push_back( VK_EXT_DEBUG_REPORT_EXTENSION_NAME );
 		}
-		KLOG(Info, kaleido3d::VulkanRHI, "available extension : %s .", instanceExtensions[i].extensionName);
+		VKLOG(Info, "available extension : %s .", instanceExtensions[i].extensionName);
 	}
 	if (!surfaceExtFound)
 	{
-		KLOG(Error, kaleido3d::VulkanRHI, "vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_SURFACE_EXTENSION_NAME" extension.");
+		VKLOG(Error, "vkEnumerateInstanceExtensionProperties failed to find the " VK_KHR_SURFACE_EXTENSION_NAME" extension.");
 	}
 	if (!platformSurfaceExtFound)
 	{
-		KLOG(Error, kaleido3d::VulkanRHI,"vkEnumerateInstanceExtensionProperties failed to find the " PLATFORM_SURFACE_EXT " extension.");
+		VKLOG(Error, "vkEnumerateInstanceExtensionProperties failed to find the " PLATFORM_SURFACE_EXT " extension.");
 	}
 
 	VkApplicationInfo appInfo = {};
@@ -156,7 +156,7 @@ VkResult RHIRoot::CreateInstance(bool enableValidation, std::string name)
 				s_LayerNames.push_back(prop.layerName);
 				instanceCreateInfo.enabledLayerCount = s_LayerNames.size();
 				instanceCreateInfo.ppEnabledLayerNames = s_LayerNames.data();
-				KLOG(Info, kaleido3d::VulkanRHI, "enable validation layer [%s].", prop.layerName);
+				VKLOG(Info, "enable validation layer [%s].", prop.layerName);
 				break;
 			}
 		}
@@ -173,7 +173,7 @@ void EnumAllDeviceAdapter(rhi::IDeviceAdapter** & adapterList, uint32* count)
 		VkPhysicalDeviceProperties properties;
 		vkGetPhysicalDeviceProperties(RHIRoot::GetPhysicDevices()[i], &properties);
 		adapterList[i] = new DeviceAdapter(&(RHIRoot::GetPhysicDevices()[i]));
-		Log::Out(LogLevel::Info, "EnumAllDeviceAdapter", "DeviceName is %s, VendorId is %d.", properties.deviceName, properties.vendorID);
+		VKLOG(Info, "DeviceName is %s, VendorId is %d.", properties.deviceName, properties.vendorID);
 	}
 }
 

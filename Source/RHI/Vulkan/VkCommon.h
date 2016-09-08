@@ -16,13 +16,20 @@
 #include <Core/LogUtil.h>
 //#include <Core/Thread/Thread.h>
 
-#define VKLOG(level, ...) KLOG(level, kaleido3d::VulkanRHI, __VA_ARGS__)
+
+typedef void (*PFN_vklogCallBack)(k3d::LogLevel const&, const char * tag, const char * fmt, ...);
+
+extern void VkLog(k3d::LogLevel const&, const char * tag, const char * fmt, ...);
+extern void SetVkLogCallback(PFN_vklogCallBack func);
+
+#define VKLOG(level, ...) VkLog(::k3d::LogLevel::level, "kaleido3d::VulkanRHI", __VA_ARGS__)
+
 #define VKRHI_METHOD_TRACE VKLOG(Info, __K3D_FUNC__);
 
 #define K3D_VK_VERIFY(expr) \
 	do { \
 		if ((expr) != VK_SUCCESS) { \
-		Log::Out (LogLevel::Fatal, "VKRHI_ASSERT", "failed " K3D_STRINGIFY(expr) " %s@%d.", __FILE__, __LINE__); \
+		VkLog (LogLevel::Fatal, "VKRHI_ASSERT", "failed " K3D_STRINGIFY(expr) " %s@%d.", __FILE__, __LINE__); \
 		throw; \
 		}\
 	} while (0);

@@ -408,11 +408,13 @@ std::string DumpSubmitInfo(VkSubmitInfo info)
 	return submitInfo.str();
 }
 
+#define DYNVKLDLOG(x) VkLog(k3d::LogLevel::Debug, "DynVkLoader", (x));
+
 VkResult vkCmd::QueueSubmit(VkQueue Queue, uint32 SubmitCount, const VkSubmitInfo * Submits, VkFence Fence)
 {
 	std::stringstream params;
 	params << "vkCmd::QueueSubmit() Queue: 0x" << std::hex << std::setfill('0') << Queue << ", SubmitCount: " << SubmitCount << "\n" << DumpSubmitInfo(Submits[0]) << std::endl;
-	OutputDebugStringA(params.str().c_str());
+	DYNVKLDLOG(params.str().c_str());
 	return vkQueueSubmit(Queue, SubmitCount, Submits, Fence);
 }
 
@@ -435,8 +437,7 @@ VkResult vkCmd::CreateDescriptorSetLayout(VkDevice Device, const VkDescriptorSet
 			param << ", \n\tpBindings[" << i << "]=" << DumpDescriptorSetLayoutBinding(CreateInfo->pBindings[i]);
 	}
 	param << "]\n";
-	OutputDebugStringA(param.str().c_str());
-
+	DYNVKLDLOG(param.str().c_str());
 	return vkCreateDescriptorSetLayout(Device, CreateInfo, Allocator, SetLayout);
 }
 
@@ -492,7 +493,7 @@ VkResult vkCmd::CreateGraphicsPipelines(VkDevice Device, VkPipelineCache Pipelin
 			param << ", \n\tCreateInfos[" << i << "]=" << DumpGraphicsPipelineCreateInfo(CreateInfos[i]);
 	}
 	param << "\n";
-	OutputDebugStringA(param.str().c_str());
+	DYNVKLDLOG(param.str().c_str());
 	return vkCreateGraphicsPipelines(Device, PipelineCache, CreateInfoCount, CreateInfos, Allocator, Pipelines);
 }
 
@@ -504,6 +505,6 @@ VkResult  vkCmd::BindBufferMemory(VkDevice Device, VkBuffer Buffer, VkDeviceMemo
 			<< "\n\t, buffer=" << std::hex << std::setfill('0') << Buffer
 			<< "\n\t, memory=" << std::hex << std::setfill('0') << Memory
 			<< "\n\t, memoryOffset=" << std::dec << MemoryOffset << "\n";
-	OutputDebugStringA(param.str().c_str());
+	DYNVKLDLOG(param.str().c_str());
 	return vkBindBufferMemory(Device, Buffer, Memory, MemoryOffset);
 }

@@ -36,6 +36,7 @@ set(RHI_IMPL_SRCS
 	Private/VkFrameBuffer.cpp
 	private/VkRenderPass.cpp
 	Private/VkDebug.cpp
+	Private/VkImpl.cpp
 	Public/VkRHI.cpp
 	Public/DynVulkanLoader.cpp
 )
@@ -58,7 +59,7 @@ add_library(RHI_Vulkan  ${LIB_TYPE}
 
 target_link_libraries(
 	RHI_Vulkan
-	Core ShaderCompiler
+	ShaderCompiler
 )
 
 add_precompiled_header(RHI_Vulkan "VkCommon.h" "${Kaleido3D_ROOT_DIR}/Source/RHI/Vulkan" "${Kaleido3D_ROOT_DIR}/Source/RHI/Vulkan/Public/VkRHI.cpp")
