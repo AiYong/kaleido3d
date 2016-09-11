@@ -5,6 +5,8 @@
 #if K3DPLATFORM_OS_WIN
 namespace k3d {
 
+	class DXCompilerOutput;
+
 	class DXCompiler : public IShaderCompiler
 	{
 	public:
@@ -13,6 +15,8 @@ namespace k3d {
 		~DXCompiler() override {}
 
 		IShaderCompilerOutput * Compile(ShaderCompilerOption const& option, const char * source) override;
+
+		DXCompilerOutput * Reflect(DXCompilerOutput * input);
 	};
 
 	class DXCompilerOutput : public IShaderCompilerOutput

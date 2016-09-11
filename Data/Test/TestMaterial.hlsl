@@ -16,7 +16,7 @@ cbuffer PointLightConstants : register(b1)
 {
 	float3 PointLightPosition	: packoffset(c0);
 	float PointLightRangeRcp : packoffset(c0.w);
-	float3 PointLightColor	: packoffset(c1)
+	float3 PointLightColor	: packoffset(c1);
 }
 
 struct VS_INPUT
@@ -28,7 +28,7 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
 	float4 Position : SV_POSITION;
-	float3 Normal;
+	float3 Normal: NORMAL;
 };
 
 struct Material
@@ -46,7 +46,7 @@ float3 CalculatePointLighting(float3 position, Material material)
 	float DistToLight = length(ToLight);
 }
 
-VS_OUTPUT RenderSceneVS(VS_INPUT input)
+VS_OUTPUT RenderSceneVS(in VS_INPUT input)
 {
 	VS_OUTPUT output;
 	float3 normalWorldSpace;

@@ -80,3 +80,9 @@ add_unittest(
 	../Platform/Windows/win32icon.rc
 	3.Triangle/Triangle.cpp
 )
+
+add_unittest(
+	UTShaderCompiler
+	../Platform/Windows/win32icon.rc
+	UTShaderCompiler.cpp
+)
