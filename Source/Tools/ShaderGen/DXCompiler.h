@@ -2,8 +2,14 @@
 #ifndef __DXCompiler_h__
 #define __DXCompiler_h__
 
-#if K3DPLATFORM_OS_WIN
-namespace k3d {
+#if _WIN32
+
+#include <d3dcommon.h>
+#include <wrl/client.h>
+
+namespace k3d 
+{
+	using namespace Microsoft::WRL;
 
 	class DXCompilerOutput;
 
@@ -14,11 +20,11 @@ namespace k3d {
 		DXCompiler() {}
 		~DXCompiler() override {}
 
-		IShaderCompilerOutput * Compile(ShaderCompilerOption const& option, const char * source) override;
-
-		DXCompilerOutput * Reflect(DXCompilerOutput * input);
+		IShaderCompilerOutput *		Compile(ShaderCompilerOption const& option, const char * source) override;
+		const char *				GetVersion() override;
+		DXCompilerOutput *			Reflect(DXCompilerOutput * input);
 	};
-
+	
 	class DXCompilerOutput : public IShaderCompilerOutput
 	{
 		friend class DXCompiler;
@@ -27,14 +33,13 @@ namespace k3d {
 		~DXCompilerOutput() override {}
 
 		const char*					GetErrorMsg() const					{ return m_ErrorMsg.c_str(); }
-		const char*					GetShaderBytes() const				{ return (const char*)m_Data.Data(); }
-		const uint32				GetByteCount() const				{ return m_Data.Count()*sizeof(uint32); }
+		const void*					Bytes() const override				{ return m_pData->GetBufferPointer(); }
+		uint64						Length() const override				{ return m_pData->GetBufferSize(); }
 		shaderbinding::BindingTable GetBindingTable() const override	{ return m_BindingTable; }
 		const Attributes&			GetAttributes() const override		{ return m_Attributes;}
-		const rhi::ShaderByteCode&	GetByteCode() const override		{ return m_Data; };
 
 	private:
-		rhi::ShaderByteCode			m_Data;
+		ComPtr<ID3DBlob>			m_pData;
 		shaderbinding::BindingTable	m_BindingTable;
 		Attributes					m_Attributes;
 		std::string					m_ErrorMsg;

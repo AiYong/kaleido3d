@@ -131,7 +131,7 @@ namespace k3d
 			}
 		};
 	}
-
+	/*
 	class Shader
 	{
 	public:
@@ -156,15 +156,14 @@ namespace k3d
 		std::string			m_Source;
 		rhi::ShaderByteCode m_ByteCodes;
 	};
-	
-	class IShaderCompilerOutput
+	*/
+	class IShaderCompilerOutput : public rhi::IDataBlob
 	{
 	public:
 		using Attributes = std::vector<shaderbinding::Attribute>;
 		virtual const char*					GetErrorMsg() const = 0;
-		virtual const char*					GetShaderBytes() const = 0;
-		virtual const uint32				GetByteCount() const = 0;
-		virtual const rhi::ShaderByteCode&	GetByteCode() const = 0;
+		//virtual uint32		Length() const = 0;
+		//virtual const void*	Bytes() const = 0;
 		virtual shaderbinding::BindingTable GetBindingTable() const = 0;
 		virtual const Attributes &			GetAttributes() const = 0;
 		virtual								~IShaderCompilerOutput() {}
@@ -177,6 +176,11 @@ namespace k3d
 		MetalSL
 	};
 
+	enum class EShaderModel
+	{
+		SM_5_1
+	};
+
 	enum class EShaderCompileResult
 	{
 		Success,
@@ -185,15 +189,23 @@ namespace k3d
 	
 	struct ShaderCompilerOption
 	{
+		enum Flags
+		{
+			ComipleSource = 1,
+			ReflectByteCode = 1 <<1,
+			CompileAndReflect = ComipleSource | ReflectByteCode
+		};
 		rhi::EShaderType	ShaderType;
-		std::string			ShaderModel;
+		EShaderModel		ShaderModel;
 		std::string			EntryFunction;
+		Flags				Flag;
 	};
 
 	class K3D_API IShaderCompiler
 	{
 	public:
 		virtual IShaderCompilerOutput*	Compile(ShaderCompilerOption const& option, const char * source) = 0;
+		virtual const char *			GetVersion() = 0;
 		virtual ~IShaderCompiler() {}
 	};
 }

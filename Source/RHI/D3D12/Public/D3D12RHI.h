@@ -179,33 +179,6 @@ private:
 	Device::Ptr m_Device;
 };
 
-struct ShaderBytes : public rhi::IShaderBytes
-{
-	ShaderBytes(PtrBlob Blob) : ShaderBC(Blob) {}
-
-	uint32	Length() override
-	{
-		return static_cast<uint32>(ShaderBC->GetBufferSize());
-	}
-	const void*	Bytes() override
-	{
-		return ShaderBC->GetBufferPointer();
-	}
-	D3D12_SHADER_BYTECODE AsBC()
-	{
-		return D3D12_SHADER_BYTECODE {ShaderBC->GetBufferPointer(), ShaderBC->GetBufferSize() };
-	}
-
-	PtrBlob ShaderBC;
-};
-
-/*
-struct ShaderCompiler : public rhi::IShaderCompiler
-{
-	rhi::IShaderBytes* CompileFromSource(ELangVersion, rhi::EShaderType, const char*) override;
-	rhi::IShaderBytes* CompileFromSource(ELangVersion, rhi::EShaderType, const char*, const char * entry);
-};
-*/
 class RootSignature;
 
 class PipelineLayout : public rhi::IPipelineLayout

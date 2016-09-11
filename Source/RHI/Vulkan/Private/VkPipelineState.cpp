@@ -43,7 +43,7 @@ void PipelineStateObject::BindRenderPass(VkRenderPass RenderPass)
 }
 
 
-VkShaderModule CreateShaderModule(VkDevice Device, rhi::ShaderByteCode const& ShaderBytes)
+VkShaderModule CreateShaderModule(VkDevice Device, rhi::IDataBlob * ShaderBytes)
 {
 	VkShaderModule shaderModule;
 	VkShaderModuleCreateInfo moduleCreateInfo;
@@ -51,8 +51,8 @@ VkShaderModule CreateShaderModule(VkDevice Device, rhi::ShaderByteCode const& Sh
 	moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	moduleCreateInfo.pNext = NULL;
 
-	moduleCreateInfo.codeSize = ShaderBytes.Count()*sizeof(uint32);
-	moduleCreateInfo.pCode = ShaderBytes.Data();
+	moduleCreateInfo.codeSize = ShaderBytes->Length();
+	moduleCreateInfo.pCode = (const uint32*)ShaderBytes->Bytes();
 	moduleCreateInfo.flags = 0;
 	K3D_VK_VERIFY(vkCreateShaderModule(Device, &moduleCreateInfo, NULL, &shaderModule));
 	return shaderModule;
@@ -66,8 +66,8 @@ VkShaderModule CreateShaderModule(VkDevice Device, ::k3d::IShaderCompilerOutput 
 	moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	moduleCreateInfo.pNext = NULL;
 
-	moduleCreateInfo.codeSize = ShaderBytes->GetByteCount();
-	moduleCreateInfo.pCode = (uint32_t*)ShaderBytes->GetShaderBytes();
+	moduleCreateInfo.codeSize = ShaderBytes->Length();
+	moduleCreateInfo.pCode = (const uint32_t*)ShaderBytes->Bytes();
 	moduleCreateInfo.flags = 0;
 	K3D_VK_VERIFY(vkCreateShaderModule(Device, &moduleCreateInfo, NULL, &shaderModule));
 	return shaderModule;
@@ -195,8 +195,8 @@ GetShaderStageInfo(VkDevice device, rhi::PipelineDesc const & desc)
 	std::vector<VkPipelineShaderStageCreateInfo> infos;
 	for (uint32 i = 0; i < rhi::EShaderType::ShaderTypeNum; i++)
 	{
-		const rhi::ShaderByteCode& code = desc.Shaders[i];
-		if (code.Count() > 0)
+		const auto& code = desc.pShaders[i];
+		if (code && code->Length() > 0)
 		{
 			infos.push_back({
 				VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0,

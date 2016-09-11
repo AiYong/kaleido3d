@@ -544,17 +544,28 @@ namespace rhi
 			Type(t), Flag(f), CreationFlag(cf), ViewType(viewType) {}
 	};
 
-	typedef ::k3d::DynArray<uint32>				ShaderByteCode;
+	struct IDataBlob
+	{
+		virtual ~IDataBlob() {}
+		virtual uint64		Length() const = 0;
+		virtual const void*	Bytes() const = 0;
+	};
+
 	typedef ::k3d::DynArray<VertexDeclaration>	VertexInputLayout;
 
 	struct PipelineDesc
 	{
+		PipelineDesc()
+		{
+			memset(pShaders, 0, sizeof(IDataBlob*)*ShaderTypeNum);
+		}
+
 		RasterizerState		Rasterizer;
 		BlendState			Blend;
 		DepthStencilState	DepthStencil;
 
 		// Shaders
-		ShaderByteCode		Shaders[ShaderTypeNum];
+		IDataBlob*			pShaders[ShaderTypeNum];
 		// VertexAttributes
 		VertexInputLayout	VertexLayout;
 		// InputAssemblyState

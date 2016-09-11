@@ -1,10 +1,11 @@
 #include "ShaderCompiler.h"
 
 #if K3DPLATFORM_OS_WIN
-#include "DXCompiler.h"
 #include <d3dcompiler.h>
 #include <wrl/client.h>
-
+#include <d3d12shader.h>
+#include "DXCompiler.h"
+#include <sstream>
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace k3d {
@@ -86,41 +87,86 @@ namespace k3d {
 
 	IShaderCompilerOutput * DXCompiler::Compile(ShaderCompilerOption const& option, const char * source)
 	{
+		std::string sm = "vs_5_0";
+		switch (option.ShaderModel)
+		{
+		case EShaderModel::SM_5_1:
+			switch (option.ShaderType)
+			{
+			case rhi::ES_Vertex:
+				sm = "vs_5_1";
+				break;
+			case rhi::ES_Fragment:
+				sm = "ps_5_1";
+				break;
+			case rhi::ES_Compute:
+				sm = "cs_5_1";
+				break;
+			case rhi::ES_Hull:
+				sm = "hs_5_1";
+				break;
+			case rhi::ES_Geometry:
+				sm = "gs_5_1";
+				break;
+			}
+			break;
+		}
 		using PtrBlob = Microsoft::WRL::ComPtr<ID3DBlob>;
 		PtrBlob ShaderBlob, ErrorBlob;
+		if (option.Flag & ShaderCompilerOption::ComipleSource)
+		{
 #if defined(_DEBUG)
-		// Enable better shader debugging with the graphics debugging tools.
-		UINT dwShaderFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+			// Enable better shader debugging with the graphics debugging tools.
+			UINT dwShaderFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #else
-		UINT dwShaderFlags = 0;
+			UINT dwShaderFlags = 0;
 #endif
-		HRESULT Hr = ::D3DCompile(
-			source, strlen(source), /**SrcData, SrcDataLen***/
-			nullptr, nullptr, nullptr, /**SrcName, Defines, Includes**/
-			option.EntryFunction.c_str(), option.ShaderModel.c_str(),
-			dwShaderFlags, 0,
-			ShaderBlob.GetAddressOf(), ErrorBlob.GetAddressOf());
+			HRESULT Hr = ::D3DCompile(
+				source, strlen(source), /**SrcData, SrcDataLen***/
+				nullptr, nullptr, nullptr, /**SrcName, Defines, Includes**/
+				option.EntryFunction.c_str(), sm.c_str(),
+				dwShaderFlags, 0,
+				ShaderBlob.GetAddressOf(), ErrorBlob.GetAddressOf());
 
-		DXCompilerOutput * output = new DXCompilerOutput;
+			DXCompilerOutput * output = new DXCompilerOutput;
 		
-		if (FAILED(Hr))
-		{
-			output->m_ErrorMsg = { (const char*)ErrorBlob->GetBufferPointer(), ErrorBlob->GetBufferSize() };
-			output->m_Result = EShaderCompileResult::Fail;
-			return output;
-		} 
-		else 
-		{
-			output->m_Data = { (const char*)ShaderBlob->GetBufferPointer(), (uint32)ShaderBlob->GetBufferSize() };
-			output = Reflect(output);
-			return output;
+			if (FAILED(Hr))
+			{
+				output->m_ErrorMsg = { (const char*)ErrorBlob->GetBufferPointer(), ErrorBlob->GetBufferSize() };
+				output->m_Result = EShaderCompileResult::Fail;
+				return output;
+			} 
+			else 
+			{
+				output->m_pData = ShaderBlob;
+				if(option.Flag & ShaderCompilerOption::ReflectByteCode)
+				{
+					output = Reflect(output);
+				}
+				else
+				{
+					output->m_Result = EShaderCompileResult::Success;
+				}
+				return output;
+			}
 		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	const char * DXCompiler::GetVersion()
+	{
+		std::stringstream version;
+		version << "Microsoft D3DCompiler " << D3D_COMPILER_VERSION;
+		return version.str().c_str();
 	}
 
 	DXCompilerOutput * DXCompiler::Reflect(DXCompilerOutput * input)
 	{
 		Microsoft::WRL::ComPtr<ID3D12ShaderReflection> reflection;
-		HRESULT refHr = D3DReflect(input->GetShaderBytes(), input->GetByteCount(), IID_PPV_ARGS(reflection.GetAddressOf()));
+		HRESULT refHr = D3DReflect(input->Bytes(), input->Length(), IID_PPV_ARGS(reflection.GetAddressOf()));
 		D3D12_SHADER_DESC desc;
 		if (SUCCEEDED(refHr))
 		{
@@ -153,7 +199,7 @@ namespace k3d {
 				D3D12_SIGNATURE_PARAMETER_DESC spd = {};
 				reflection->GetInputParameterDesc(i, &spd);
 				auto dt = D3DSigTypeConvert(spd);
-				printf("Input Param -- SemName:(%s) SemId:(%d) Type:(%d) Size:(%d)\n", spd.SemanticName, spd.SemanticIndex, spd.ComponentType);
+				printf("Input Param -- SemName:(%s) SemId:(%d) Type:(%d)\n", spd.SemanticName, spd.SemanticIndex, spd.ComponentType);
 			}
 
 			input->m_Result = EShaderCompileResult::Success;

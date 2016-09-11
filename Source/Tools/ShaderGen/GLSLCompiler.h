@@ -8,12 +8,14 @@
 
 namespace k3d 
 {
+	typedef std::vector<uint32> SPIRV_T;
+
 	class GLSLCompiler : public IShaderCompiler
 	{
 	public:
 									GLSLCompiler();
 									~GLSLCompiler() override;
-		
+		const char *				GetVersion() override;
 		IShaderCompilerOutput*		Compile(ShaderCompilerOption const& option, const char * source) override;
 	};
 
@@ -21,23 +23,21 @@ namespace k3d
 	struct GLSLOutput : public IShaderCompilerOutput
 	{
 		GLSLOutput() {}
-		explicit GLSLOutput(rhi::ShaderByteCode && in) : m_ByteCode(in) {}
+		explicit GLSLOutput(SPIRV_T && in) : m_ByteCode( std::move(in) ) {}
 
 		const char*					GetErrorMsg() const { return m_ErrorMsg.c_str(); }
-		const char*					GetShaderBytes() const { return reinterpret_cast<const char*>(&m_ByteCode[0]); }
-		const uint32				GetByteCount() const { return m_ByteCode.Count()*sizeof(unsigned int); }
+		const void*					Bytes() const { return m_ByteCode.data(); }
+		uint64						Length() const { return m_ByteCode.size()*sizeof(uint32); }
 		shaderbinding::BindingTable GetBindingTable() const override { return m_BindingTable; }
 		const Attributes &			GetAttributes() const { return m_Attributes; }
-		const rhi::ShaderByteCode&	GetByteCode() const override 
-		{
-			return m_ByteCode;
-		};
 
 	private:
 		friend GLSLOutput*	glslToSpv(	const rhi::EShaderType shader_type,
 										const char *pshader);
 
-		rhi::ShaderByteCode						m_ByteCode;
+		GLSLOutput*			reflect(GLSLOutput* input);
+
+		SPIRV_T									m_ByteCode;
 		Attributes								m_Attributes;
 		shaderbinding::BindingTable				m_BindingTable;
 		std::string								m_ErrorMsg;

@@ -5,7 +5,10 @@
 
 add_definitions(-DUSE_GLSLANG=1)
 
-include_directories(${K3D_THIRD_PARTY}/Spir2Cross)
+include_directories(
+${K3D_THIRD_PARTY}/Spir2Cross
+${DXSDK_INCLUDE_DIR}
+)
 
 set(HEADERS DXCompiler.h GLSLCompiler.h ShaderCompiler.h)
 set(SRCS 

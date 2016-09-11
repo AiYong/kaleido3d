@@ -329,10 +329,18 @@ namespace k3d {
 	void MemMapFile::Close()
 	{
 #if K3DPLATFORM_OS_WIN
-		UnmapViewOfFile(m_pData);
-		CloseHandle(m_FileMappingHandle);
-		//CloseHandle( m_FileHandle );
+		if (m_pData)
+		{
+			UnmapViewOfFile(m_pData);
+			m_pData = nullptr;
+		}
+		if (m_FileMappingHandle)
+		{
+			CloseHandle(m_FileMappingHandle);
+			m_FileMappingHandle = NULL;
+		}
 #else
+		// TODO : need fix
 		munmap(m_pData, m_szFile);
 		close(m_Fd);
 #endif

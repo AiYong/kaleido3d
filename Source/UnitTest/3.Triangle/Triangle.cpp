@@ -188,7 +188,7 @@ IShaderCompilerOutput *
 VkTriangleUnitTest::compile(const char * shaderPath, rhi::EShaderType const & type)
 {
 	auto pDevice = m_RenderContext.GetDevice();
-	ShaderCompilerOption vertOpt = { type, "", "main" };
+	ShaderCompilerOption vertOpt = { type, k3d::EShaderModel::SM_5_1, "main", k3d::ShaderCompilerOption::CompileAndReflect };
 	IShaderCompiler * pCompiler = pDevice->NewShaderCompiler();
 	
 	IAsset * shaderFile = AssetManager::Open(shaderPath);
@@ -228,8 +228,8 @@ void VkTriangleUnitTest::PreparePipeline()
 	descriptor->Update(0, m_ConstBuffer);
 	auto attrib = vertSh->GetAttributes();
 	rhi::PipelineDesc desc;
-	desc.Shaders[rhi::ES_Vertex] = vertSh->GetByteCode();
-	desc.Shaders[rhi::ES_Fragment] = fragSh->GetByteCode();
+	desc.pShaders[rhi::ES_Vertex] = vertSh;
+	desc.pShaders[rhi::ES_Fragment] = fragSh;
 	desc.VertexLayout.Append(m_TriMesh->GetVertDec()[0]).Append(m_TriMesh->GetVertDec()[1]);
 	m_pPso = pDevice->NewPipelineState(desc, m_pl, rhi::EPSO_Graphics);
 

@@ -12,8 +12,9 @@ int main(int argc, char**argv)
 	auto compiler = CreateShaderCompiler(EShaderLang::GLSL);
 	ShaderCompilerOption option = {
 		rhi::ES_Vertex,
-		"",
-		"main"
+		k3d::EShaderModel::SM_5_1,
+		"main",
+		k3d::ShaderCompilerOption::CompileAndReflect
 	};
 
 	MemMapFile _vertexShader;
@@ -23,7 +24,7 @@ int main(int argc, char**argv)
 
 	File _output("triangle.vert.spv");
 	_output.Open(IOWrite);
-	_output.Write(output->GetShaderBytes(), output->GetByteCount());
+	_output.Write(output->Bytes(), output->Length());
 	_output.Close();
 
 	_vertexShader.Close();
@@ -31,13 +32,14 @@ int main(int argc, char**argv)
 	compiler = CreateShaderCompiler(EShaderLang::HLSL);
 	ShaderCompilerOption option_hlsl = {
 		rhi::ES_Vertex,
-		"vs_5_1",
-		"RenderSceneVS"
+		k3d::EShaderModel::SM_5_1,
+		"RenderSceneVS",
+		k3d::ShaderCompilerOption::CompileAndReflect
 	};
 	_vertexShader.Open("../../Data/Test/TestMaterial.hlsl", IOFlag::IORead);
 	output = compiler->Compile(option_hlsl, (const char*)_vertexShader.FileData());
 	_output.Open("TestMaterial.dxbc",IOWrite);
-	_output.Write(output->GetShaderBytes(), output->GetByteCount());
+	_output.Write(output->Bytes(), output->Length());
 	_output.Close();
 
 	_vertexShader.Close();

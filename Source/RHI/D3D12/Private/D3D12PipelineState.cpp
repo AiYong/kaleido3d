@@ -49,26 +49,26 @@ PipelineState::~PipelineState()
 
 void PipelineState::SetShader(rhi::EShaderType Type, ::k3d::IShaderCompilerOutput* RShader)
 {
-	K3D_ASSERT(RShader && RShader->GetByteCount()>0 );
+	K3D_ASSERT(RShader && RShader->Length()>0 );
 	switch (Type)
 	{
 	case rhi::ES_Vertex:
-		m_GraphicsPSODesc.VS = { RShader->GetShaderBytes(), RShader->GetByteCount() };
+		m_GraphicsPSODesc.VS = { RShader->Bytes(), RShader->Length() };
 		break;
 	case rhi::ES_Fragment:
-		m_GraphicsPSODesc.PS = { RShader->GetShaderBytes(), RShader->GetByteCount() };
+		m_GraphicsPSODesc.PS = { RShader->Bytes(), RShader->Length() };
 		break;
 	case rhi::ES_Compute:
-		m_ComputePSODesc.CS = { RShader->GetShaderBytes(), RShader->GetByteCount() };
+		m_ComputePSODesc.CS = { RShader->Bytes(), RShader->Length() };
 		break;
 	case rhi::ES_Hull:
-		m_GraphicsPSODesc.HS = { RShader->GetShaderBytes(), RShader->GetByteCount() };
+		m_GraphicsPSODesc.HS = { RShader->Bytes(), RShader->Length() };
 		break;
 	case rhi::ES_Domain:
-		m_GraphicsPSODesc.DS = { RShader->GetShaderBytes(), RShader->GetByteCount() };
+		m_GraphicsPSODesc.DS = { RShader->Bytes(), RShader->Length() };
 		break;
 	case rhi::ES_Geometry:
-		m_GraphicsPSODesc.GS = { RShader->GetShaderBytes(), RShader->GetByteCount() };
+		m_GraphicsPSODesc.GS = { RShader->Bytes(), RShader->Length() };
 		break;
 	}
 }

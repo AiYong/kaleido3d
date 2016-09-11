@@ -192,12 +192,6 @@ namespace rhi
 		virtual uint32				GetHeight() const = 0;
 	};
 
-	struct IShaderBytes
-	{
-		virtual uint32		Length() = 0;
-		virtual const void*	Bytes() = 0;
-	};
-
 	struct IColorBuffer
 	{
 		virtual ~IColorBuffer() {}

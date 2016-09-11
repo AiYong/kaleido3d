@@ -571,8 +571,7 @@ namespace k3d {
 		auto backCompiler = std::unique_ptr<spir2cross::CompilerGLSL>(new spir2cross::CompilerGLSL(spirv));
 		K3D_ASSERT(backCompiler);
 
-		rhi::ShaderByteCode bc(spirv.data(), spirv.size());
-		output = new GLSLOutput(std::move(bc));
+		output = new GLSLOutput(std::move(spirv));
 		// Extract shader attributes in VertexShader
 		if (shader_type == rhi::ES_Vertex) 
 		{
@@ -583,6 +582,25 @@ namespace k3d {
 		return output;
 	}
 
+	const char * GLSLCompiler::GetVersion()
+	{
+		return glslang::GetGlslVersionString();
+	}
+
+	GLSLOutput * GLSLOutput::reflect(GLSLOutput * input)
+	{
+		//auto backCompiler = std::unique_ptr<spir2cross::CompilerGLSL>(new spir2cross::CompilerGLSL(spirv));
+		//K3D_ASSERT(backCompiler);
+		//// Extract shader attributes in VertexShader
+		//if (shader_type == rhi::ES_Vertex)
+		//{
+		//	extractAttributeData(backCompiler, &output->m_Attributes);
+		//}
+		//extractUniformData(shader_type, backCompiler, &output->m_BindingTable);
+		//output->m_Result = EShaderCompileResult::Success;
+		
+		return nullptr;
+	}
 
 	static void sInitializeGlSlang()
 	{
