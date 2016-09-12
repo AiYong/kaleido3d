@@ -32,7 +32,7 @@ namespace k3d
 		const Attributes &			GetAttributes() const { return m_Attributes; }
 
 	private:
-		friend GLSLOutput*	glslToSpv(	const rhi::EShaderType shader_type,
+		friend GLSLOutput*	glslToSpv(	const rhi::EShaderType shader_type, const EShaderModel shader_model,
 										const char *pshader);
 
 		GLSLOutput*			reflect(GLSLOutput* input);

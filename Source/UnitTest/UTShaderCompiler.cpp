@@ -1,6 +1,10 @@
 #include <Kaleido3D.h>
 #include <Core/File.h>
 #include <Tools/ShaderGen/ShaderCompiler.h>
+#include <iostream>
+
+using namespace std;
+
 #if _WIN32
 #pragma comment(linker,"/subsystem:console")
 #endif
@@ -12,7 +16,7 @@ int main(int argc, char**argv)
 	auto compiler = CreateShaderCompiler(EShaderLang::GLSL);
 	ShaderCompilerOption option = {
 		rhi::ES_Vertex,
-		k3d::EShaderModel::SM_5_1,
+		k3d::EShaderModel::GL_4_3,
 		"main",
 		k3d::ShaderCompilerOption::CompileAndReflect
 	};
@@ -22,6 +26,8 @@ int main(int argc, char**argv)
 	auto output = compiler->Compile(option, (const char*)_vertexShader.FileData());
 	output->GetAttributes();
 
+	cout << compiler->GetVersion() << endl;
+
 	File _output("triangle.vert.spv");
 	_output.Open(IOWrite);
 	_output.Write(output->Bytes(), output->Length());
@@ -30,6 +36,8 @@ int main(int argc, char**argv)
 	_vertexShader.Close();
 
 	compiler = CreateShaderCompiler(EShaderLang::HLSL);
+	cout << compiler->GetVersion() << endl;
+
 	ShaderCompilerOption option_hlsl = {
 		rhi::ES_Vertex,
 		k3d::EShaderModel::SM_5_1,
@@ -41,6 +49,14 @@ int main(int argc, char**argv)
 	_output.Open("TestMaterial.dxbc",IOWrite);
 	_output.Write(output->Bytes(), output->Length());
 	_output.Close();
+
+	//_vertexShader.Close();
+
+	// unavailable currently
+	compiler = CreateShaderCompiler(EShaderLang::GLSL);
+	output = compiler->Compile(option_hlsl, (const char*)_vertexShader.FileData());
+	
+	cout << compiler->GetVersion() << endl;
 
 	_vertexShader.Close();
 

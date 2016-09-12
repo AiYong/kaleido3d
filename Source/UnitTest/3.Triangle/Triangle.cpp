@@ -188,7 +188,7 @@ IShaderCompilerOutput *
 VkTriangleUnitTest::compile(const char * shaderPath, rhi::EShaderType const & type)
 {
 	auto pDevice = m_RenderContext.GetDevice();
-	ShaderCompilerOption vertOpt = { type, k3d::EShaderModel::SM_5_1, "main", k3d::ShaderCompilerOption::CompileAndReflect };
+	ShaderCompilerOption vertOpt = { type, k3d::EShaderModel::GL_4_3, "main", k3d::ShaderCompilerOption::CompileAndReflect };
 	IShaderCompiler * pCompiler = pDevice->NewShaderCompiler();
 	
 	IAsset * shaderFile = AssetManager::Open(shaderPath);

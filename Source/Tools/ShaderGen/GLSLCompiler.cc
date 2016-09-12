@@ -8,26 +8,21 @@
 #include <Core/LogUtil.h>
 
 #include "GLSLCompiler.h"
-#include "spir2cross.hpp"
-#include "spir2glsl.hpp"
+#include "spirv_cross.hpp"
+#include "spirv_glsl.hpp"
 
 namespace k3d {
-
-	IShaderCompilerOutput* GLSLCompiler::Compile(ShaderCompilerOption const& option,  const char * source)
-	{
-		return glslToSpv(option.ShaderType, source);
-	}
 #if USE_GLSLANG
 	using namespace ::glslang;
 #endif
 	using namespace shaderbinding;
 
-	EDataType spirTypeToGlslAttributeDataType(const spir2cross::SPIRType& spirType)
+	EDataType spirTypeToGlslAttributeDataType(const spirv_cross::SPIRType& spirType)
 	{
 		EDataType result = EDataType::EUnknown;
 		switch (spirType.basetype)
 		{
-		case spir2cross::SPIRType::Bool: 
+		case spirv_cross::SPIRType::Boolean: 
 		{
 			switch (spirType.vecsize) 
 			{
@@ -39,7 +34,7 @@ namespace k3d {
 		}
 		break;
 
-		case spir2cross::SPIRType::Int: 
+		case spirv_cross::SPIRType::Int: 
 		{
 			switch (spirType.vecsize) 
 			{
@@ -51,7 +46,7 @@ namespace k3d {
 		}
 		break;
 
-		case spir2cross::SPIRType::UInt:
+		case spirv_cross::SPIRType::UInt:
 		{
 			switch (spirType.vecsize)
 			{
@@ -63,7 +58,7 @@ namespace k3d {
 		}
 		break;
 
-		case spir2cross::SPIRType::Float: 
+		case spirv_cross::SPIRType::Float: 
 		{
 			switch (spirType.vecsize) 
 			{
@@ -97,12 +92,12 @@ namespace k3d {
 		return ESemantic::ENumSemanics;
 	}
 
-	EDataType spirTypeToGlslUniformDataType(const spir2cross::SPIRType& spirType)
+	EDataType spirTypeToGlslUniformDataType(const spirv_cross::SPIRType& spirType)
 	{
 		EDataType result = EDataType::EUnknown;
 		switch (spirType.basetype) 
 		{
-		case spir2cross::SPIRType::Bool: 
+		case spirv_cross::SPIRType::Boolean: 
 		{
 			switch (spirType.vecsize) 
 			{
@@ -114,7 +109,7 @@ namespace k3d {
 		}
 		break;
 
-		case spir2cross::SPIRType::Int: 
+		case spirv_cross::SPIRType::Int: 
 		{
 			switch (spirType.vecsize)
 			{
@@ -126,7 +121,7 @@ namespace k3d {
 		}
 		break;
 
-		case spir2cross::SPIRType::UInt: 
+		case spirv_cross::SPIRType::UInt: 
 		{
 			switch (spirType.vecsize) 
 			{
@@ -138,7 +133,7 @@ namespace k3d {
 		}
 		break;
 
-		case spir2cross::SPIRType::Float: 
+		case spirv_cross::SPIRType::Float: 
 		{
 			switch (spirType.columns) 
 			{
@@ -193,7 +188,7 @@ namespace k3d {
 		return result;
 	}
 
-	void extractAttributeData(const std::unique_ptr<spir2cross::CompilerGLSL>& backCompiler, std::vector<shaderbinding::Attribute> *outShaderAttributes)
+	void extractAttributeData(const std::unique_ptr<spirv_cross::CompilerGLSL>& backCompiler, std::vector<shaderbinding::Attribute> *outShaderAttributes)
 	{
 		if (!backCompiler) 
 		{
@@ -202,7 +197,7 @@ namespace k3d {
 
 		for (auto& res : backCompiler->get_shader_resources().stage_inputs) 
 		{
-			spir2cross::SPIRType	spirType = backCompiler->get_type(res.type_id);
+			spirv_cross::SPIRType	spirType = backCompiler->get_type(res.type_id);
 			std::string				attrName = res.name;
 			uint32					attrLocation = backCompiler->get_decoration(res.id, spv::DecorationLocation);
 			uint32					attrBinding = 0;
@@ -249,8 +244,8 @@ namespace k3d {
 
 	void extractBlock(
 		rhi::EShaderType shaderType,
-		const spir2cross::Resource& res, 
-		const std::unique_ptr<spir2cross::CompilerGLSL>& backCompiler,
+		const spirv_cross::Resource& res, 
+		const std::unique_ptr<spirv_cross::CompilerGLSL>& backCompiler,
 		BindingTable *outUniformLayout)
 	{
 		const uint64 kBlockMask = (1ULL << spv::DecorationBlock) | (1ULL << spv::DecorationBufferBlock);
@@ -297,7 +292,7 @@ namespace k3d {
 
 	void extractUniformData(
 		rhi::EShaderType shaderStage, 
-		const std::unique_ptr<spir2cross::CompilerGLSL>& backCompiler, 
+		const std::unique_ptr<spirv_cross::CompilerGLSL>& backCompiler, 
 		BindingTable *outUniformLayout)
 	{
 		if (!backCompiler) {
@@ -513,6 +508,7 @@ namespace k3d {
 
 	GLSLOutput* glslToSpv(
 		const rhi::EShaderType shader_type,
+		const k3d::EShaderModel shader_model,
 		const char *pshader)
 	{
 		GLSLOutput * output = nullptr;
@@ -524,6 +520,16 @@ namespace k3d {
 
 		// Enable SPIR-V and Vulkan rules when parsing GLSL
 		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
+		switch (shader_model)
+		{
+		case EShaderModel::GL_4_3:
+			break;
+		case EShaderModel::ES_3_1:
+			break;
+		case EShaderModel::SM_5_1:
+			messages = (EShMessages)(EShMsgVulkanRules | EShMsgSpvRules | EShMsgReadHlsl);
+			break;
+		}
 
 		EShLanguage stage = findLanguage(shader_type);
 		glslang::TShader* shader = new glslang::TShader(stage);
@@ -568,7 +574,7 @@ namespace k3d {
 		spirv.assign(module.cbegin(), module.cend());
 #endif
 
-		auto backCompiler = std::unique_ptr<spir2cross::CompilerGLSL>(new spir2cross::CompilerGLSL(spirv));
+		auto backCompiler = std::unique_ptr<spirv_cross::CompilerGLSL>(new spirv_cross::CompilerGLSL(spirv));
 		K3D_ASSERT(backCompiler);
 
 		output = new GLSLOutput(std::move(spirv));
@@ -582,6 +588,11 @@ namespace k3d {
 		return output;
 	}
 
+	IShaderCompilerOutput* GLSLCompiler::Compile(ShaderCompilerOption const& option,  const char * source)
+	{
+		return glslToSpv(option.ShaderType, option.ShaderModel, source);
+	}
+
 	const char * GLSLCompiler::GetVersion()
 	{
 		return glslang::GetGlslVersionString();
@@ -589,7 +600,7 @@ namespace k3d {
 
 	GLSLOutput * GLSLOutput::reflect(GLSLOutput * input)
 	{
-		//auto backCompiler = std::unique_ptr<spir2cross::CompilerGLSL>(new spir2cross::CompilerGLSL(spirv));
+		//auto backCompiler = std::unique_ptr<spirv_cross::CompilerGLSL>(new spirv_cross::CompilerGLSL(spirv));
 		//K3D_ASSERT(backCompiler);
 		//// Extract shader attributes in VertexShader
 		//if (shader_type == rhi::ES_Vertex)

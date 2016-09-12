@@ -6,6 +6,7 @@
 
 #include <d3dcommon.h>
 #include <wrl/client.h>
+#include <sstream>
 
 namespace k3d 
 {
@@ -16,7 +17,6 @@ namespace k3d
 	class DXCompiler : public IShaderCompiler
 	{
 	public:
-
 		DXCompiler() {}
 		~DXCompiler() override {}
 

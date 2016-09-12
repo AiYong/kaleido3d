@@ -178,7 +178,9 @@ namespace k3d
 
 	enum class EShaderModel
 	{
-		SM_5_1
+		SM_5_1,
+		ES_3_1,
+		GL_4_3
 	};
 
 	enum class EShaderCompileResult

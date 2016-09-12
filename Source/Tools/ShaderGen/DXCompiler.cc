@@ -5,7 +5,6 @@
 #include <wrl/client.h>
 #include <d3d12shader.h>
 #include "DXCompiler.h"
-#include <sstream>
 #pragma comment(lib, "d3dcompiler.lib")
 
 namespace k3d {
@@ -158,9 +157,9 @@ namespace k3d {
 
 	const char * DXCompiler::GetVersion()
 	{
-		std::stringstream version;
-		version << "Microsoft D3DCompiler " << D3D_COMPILER_VERSION;
-		return version.str().c_str();
+		static char cCompilerVer[64] = { 0 };
+		snprintf(cCompilerVer, 64, "Microsoft D3DCompiler %d", D3D_COMPILER_VERSION);
+		return cCompilerVer;
 	}
 
 	DXCompilerOutput * DXCompiler::Reflect(DXCompilerOutput * input)
