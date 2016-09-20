@@ -84,7 +84,7 @@ namespace k3d {
 	}
 
 
-	IShaderCompilerOutput * DXCompiler::Compile(ShaderCompilerOption const& option, const char * source)
+	IShaderCompilerOutput * DXCompiler::Compile(ShaderCompilerOption const& option, const char * source, size_t length)
 	{
 		std::string sm = "vs_5_0";
 		switch (option.ShaderModel)

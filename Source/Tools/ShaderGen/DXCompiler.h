@@ -20,7 +20,7 @@ namespace k3d
 		DXCompiler() {}
 		~DXCompiler() override {}
 
-		IShaderCompilerOutput *		Compile(ShaderCompilerOption const& option, const char * source) override;
+		IShaderCompilerOutput *		Compile(ShaderCompilerOption const& option, const char * source, size_t length) override;
 		const char *				GetVersion() override;
 		DXCompilerOutput *			Reflect(DXCompilerOutput * input);
 	};

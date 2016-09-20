@@ -198,7 +198,7 @@ VkTriangleUnitTest::compile(const char * shaderPath, rhi::EShaderType const & ty
 		return nullptr;
 	}
 
-	return pCompiler->Compile(vertOpt, (const char*)shaderFile->GetBuffer());;
+	return pCompiler->Compile(vertOpt, (const char*)shaderFile->GetBuffer(), 0);
 }
 
 void VkTriangleUnitTest::PrepareResource()

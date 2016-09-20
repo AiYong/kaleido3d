@@ -206,7 +206,7 @@ namespace k3d
 	class K3D_API IShaderCompiler
 	{
 	public:
-		virtual IShaderCompilerOutput*	Compile(ShaderCompilerOption const& option, const char * source) = 0;
+		virtual IShaderCompilerOutput*	Compile(ShaderCompilerOption const& option, const char * source, size_t length=0) = 0;
 		virtual const char *			GetVersion() = 0;
 		virtual ~IShaderCompiler() {}
 	};

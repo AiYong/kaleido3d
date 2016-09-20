@@ -509,15 +509,14 @@ namespace k3d {
 	GLSLOutput* glslToSpv(
 		const rhi::EShaderType shader_type,
 		const k3d::EShaderModel shader_model,
-		const char *pshader)
+		const char *pshader, size_t length)
 	{
 		GLSLOutput * output = nullptr;
 #if USE_GLSLANG
 		glslang::TProgram& program = *new glslang::TProgram;
-		const char *shaderStrings[1];
 		TBuiltInResource Resources;
 		initResources(Resources);
-
+		
 		// Enable SPIR-V and Vulkan rules when parsing GLSL
 		EShMessages messages = (EShMessages)(EShMsgSpvRules | EShMsgVulkanRules);
 		switch (shader_model)
@@ -531,6 +530,7 @@ namespace k3d {
 			break;
 		}
 
+		const char *shaderStrings[1];
 		EShLanguage stage = findLanguage(shader_type);
 		glslang::TShader* shader = new glslang::TShader(stage);
 
@@ -573,24 +573,32 @@ namespace k3d {
 		std::vector<unsigned int> spirv;
 		spirv.assign(module.cbegin(), module.cend());
 #endif
-
-		auto backCompiler = std::unique_ptr<spirv_cross::CompilerGLSL>(new spirv_cross::CompilerGLSL(spirv));
-		K3D_ASSERT(backCompiler);
-
-		output = new GLSLOutput(std::move(spirv));
-		// Extract shader attributes in VertexShader
-		if (shader_type == rhi::ES_Vertex) 
-		{
-			extractAttributeData(backCompiler, &output->m_Attributes);
-		}
-		extractUniformData(shader_type, backCompiler, &output->m_BindingTable);
+		output = new GLSLOutput(std::move(spirv), shader_type);
 		output->m_Result = EShaderCompileResult::Success;
+		output->m_ErrorMsg = program.getInfoLog();
 		return output;
 	}
 
-	IShaderCompilerOutput* GLSLCompiler::Compile(ShaderCompilerOption const& option,  const char * source)
+	IShaderCompilerOutput* GLSLCompiler::Compile(ShaderCompilerOption const& option,  const char * source, size_t length)
 	{
-		return glslToSpv(option.ShaderType, option.ShaderModel, source);
+		GLSLOutput * output = nullptr;
+		if (option.Flag & ShaderCompilerOption::ComipleSource) {
+			output = glslToSpv(option.ShaderType, option.ShaderModel, source, length);
+		}
+		if (option.Flag & ShaderCompilerOption::ReflectByteCode) {
+			if(output)
+				output->reflect();
+			else 
+			{
+				const uint32* pSpirv = (const uint32*)source;
+				size_t spirvCount = length / sizeof(uint32);
+				std::vector<uint32> spirv(spirvCount);
+				memcpy(spirv.data(), pSpirv, length);
+				output = new GLSLOutput(std::move(spirv), option.ShaderType);
+				output->reflect();
+			}
+		}
+		return output;
 	}
 
 	const char * GLSLCompiler::GetVersion()
@@ -598,19 +606,13 @@ namespace k3d {
 		return glslang::GetGlslVersionString();
 	}
 
-	GLSLOutput * GLSLOutput::reflect(GLSLOutput * input)
+	void GLSLOutput::reflect()
 	{
-		//auto backCompiler = std::unique_ptr<spirv_cross::CompilerGLSL>(new spirv_cross::CompilerGLSL(spirv));
-		//K3D_ASSERT(backCompiler);
-		//// Extract shader attributes in VertexShader
-		//if (shader_type == rhi::ES_Vertex)
-		//{
-		//	extractAttributeData(backCompiler, &output->m_Attributes);
-		//}
-		//extractUniformData(shader_type, backCompiler, &output->m_BindingTable);
-		//output->m_Result = EShaderCompileResult::Success;
-		
-		return nullptr;
+		auto backCompiler = std::unique_ptr<spirv_cross::CompilerGLSL>(new spirv_cross::CompilerGLSL(m_ByteCode));
+		K3D_ASSERT(backCompiler);
+		extractAttributeData(backCompiler, &m_Attributes);
+		extractUniformData(m_ShaderType, backCompiler, &m_BindingTable);
+		m_Result = EShaderCompileResult::Success;
 	}
 
 	static void sInitializeGlSlang()

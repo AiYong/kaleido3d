@@ -24,7 +24,7 @@ int main(int argc, char**argv)
 	MemMapFile _vertexShader;
 	_vertexShader.Open("../../Data/Test/triangle.vert", IOFlag::IORead);
 	auto output = compiler->Compile(option, (const char*)_vertexShader.FileData());
-	output->GetAttributes();
+	auto attr = output->GetAttributes();
 
 	cout << compiler->GetVersion() << endl;
 
@@ -34,6 +34,21 @@ int main(int argc, char**argv)
 	_output.Close();
 
 	_vertexShader.Close();
+
+
+	MemMapFile bytecode;
+	bytecode.Open("triangle.vert.spv", IORead);
+
+	ShaderCompilerOption glreflectOption = {
+		rhi::ES_Vertex,
+		k3d::EShaderModel::GL_4_3,
+		"main",
+		k3d::ShaderCompilerOption::ReflectByteCode
+	};
+	output = compiler->Compile(glreflectOption, (const char*)bytecode.FileData(), bytecode.GetSize());
+	attr = output->GetAttributes();
+	bytecode.Close();
+
 
 	compiler = CreateShaderCompiler(EShaderLang::HLSL);
 	cout << compiler->GetVersion() << endl;
